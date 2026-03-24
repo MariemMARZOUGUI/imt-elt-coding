@@ -7,6 +7,10 @@ from sqlalchemy import text
 
 from src.database import get_engine, SILVER_SCHEMA, GOLD_SCHEMA
 
+# TODO (TP3): Import your logger and create a module-level logger
+#   1. from src.logger import get_logger
+#   2. logger = get_logger(__name__)
+
 
 def _read_silver(table_name: str) -> pd.DataFrame:
     """Read a table from the Silver schema."""
@@ -25,6 +29,7 @@ def _create_gold_table(df: pd.DataFrame, table_name: str, if_exists: str = "repl
         if_exists=if_exists,
         index=False,
     )
+    # TODO (TP3): Replace with logger.info(...)
     print(f"    ✅ {GOLD_SCHEMA}.{table_name} — {len(df)} rows")
 
 
@@ -36,11 +41,13 @@ def _create_gold_view(view_name: str, sql: str):
         conn.execute(text(f"DROP VIEW IF EXISTS {full_name}"))
         conn.execute(text(f"CREATE VIEW {full_name} AS {sql}"))
         conn.commit()
+    # TODO (TP3): Replace with logger.info(...)
     print(f"    ✅ View {full_name} created")
 
 
 def create_daily_revenue():
     """Create gold.daily_revenue — daily revenue."""
+    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     print("  📊 Gold: daily_revenue")
 
     # TODO: Create daily_revenue using SQL
@@ -68,6 +75,7 @@ def create_daily_revenue():
 
 def create_product_performance():
     """Create gold.product_performance — metrics per product."""
+    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     print("  🏆 Gold: product_performance")
 
     # TODO: Create the product_performance table
@@ -98,6 +106,7 @@ def create_product_performance():
 
 def create_customer_ltv():
     """Create gold.customer_ltv — Lifetime Value per customer."""
+    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
     print("  💰 Gold: customer_ltv")
 
     # TODO: Create the customer_ltv table

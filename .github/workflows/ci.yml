@@ -1,0 +1,125 @@
+# =============================================================================
+# TP4 — GitHub Actions CI/CD Pipeline
+# =============================================================================
+#
+# COMMENT FONCTIONNE GITHUB ACTIONS ?
+# ------------------------------------
+# GitHub Actions exécute automatiquement du code à chaque événement sur ton repo
+# (push, pull request, etc.). C'est comme un ordinateur distant (Ubuntu) qui :
+#   1. Clone ton repo
+#   2. Installe Python + tes dépendances
+#   3. Lance tes tests, ton linter, etc.
+#   4. Te dit si tout est vert ou rouge
+#
+# STRUCTURE D'UN WORKFLOW :
+#   - name:        Nom affiché dans l'onglet "Actions" de GitHub
+#   - on:          Quand est-ce que ça se déclenche (push, pull_request...)
+#   - jobs:        Les tâches à exécuter (chaque job tourne sur une machine séparée)
+#     - steps:     Les étapes dans un job (exécutées séquentiellement)
+#
+# OÙ VOIR LES RÉSULTATS ?
+#   → GitHub → ton repo → onglet "Actions" → tu verras chaque exécution
+#   → Un ✅ vert = tout a passé, un ❌ rouge = quelque chose a échoué
+#
+# =============================================================================
+
+name: ELT Pipeline CI
+
+# QUAND déclencher le workflow ?
+on:
+  push:
+    branches: [main, master]      # à chaque push sur main ou master
+  pull_request:
+    branches: [main, master]      # à chaque pull request vers main ou master
+
+jobs:
+  test:
+    # Sur quelle machine tourner ? (Ubuntu = Linux gratuit fourni par GitHub)
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # Étape 1 : Récupérer le code du repo
+      # -----------------------------------------------------------------------
+      # "uses" = utiliser une action pré-faite par GitHub
+      # actions/checkout@v4 = clone ton repo sur la machine distante
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Étape 2 : Installer Python
+      # -----------------------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # -----------------------------------------------------------------------
+      # Étape 3 : Installer les dépendances
+      # -----------------------------------------------------------------------
+      # "run" = exécuter des commandes shell (comme dans ton terminal)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # -----------------------------------------------------------------------
+      # TODO: Étape 4 — Linter (flake8)
+      # -----------------------------------------------------------------------
+      # Objectif : vérifier la qualité du code automatiquement
+      #
+      # flake8 analyse ton code Python et détecte :
+      #   - Les erreurs de syntaxe
+      #   - Les variables non utilisées
+      #   - Les lignes trop longues
+      #   - Les imports inutiles
+      #
+      # TODO: Décommentez et complétez cette étape :
+      #
+      # - name: Lint with flake8
+      #   run: |
+      #     pip install flake8
+      #     # Commande 1 : erreurs bloquantes (syntaxe, noms indéfinis)
+      #     # --select=E9,F63,F7,F82 = seulement les erreurs graves
+      #     # --show-source = montre la ligne fautive
+      #     flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      #     # Commande 2 : avertissements non-bloquants
+      #     # --exit-zero = ne fait PAS échouer le build pour des warnings
+      #     # --max-line-length=120 = lignes de max 120 caractères
+      #     flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      # -----------------------------------------------------------------------
+      # TODO: Étape 5 — Lancer les tests avec couverture
+      # -----------------------------------------------------------------------
+      # Objectif : exécuter pytest et mesurer la couverture de code
+      #
+      # Problème : sur la machine CI, il n'y a PAS de vraie base de données.
+      # Solution : on définit des variables d'environnement factices (env:)
+      # car nos tests utilisent des mocks et ne se connectent jamais vraiment.
+      #
+      # TODO: Décommentez et complétez cette étape :
+      #
+      # - name: Run tests with coverage
+      #   env:
+      #     # Variables factices — la CI ne se connecte pas à la vraie DB
+      #     RDS_HOST: localhost
+      #     RDS_PORT: "5432"
+      #     RDS_DATABASE: test_db
+      #     RDS_USER: test_user
+      #     RDS_PASSWORD: test_pass
+      #     BRONZE_SCHEMA: bronze_test
+      #     SILVER_SCHEMA: silver_test
+      #     GOLD_SCHEMA: gold_test
+      #   run: |
+      #     pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+
+      # -----------------------------------------------------------------------
+      # TODO: Étape 6 (Bonus) — Uploader le rapport de couverture
+      # -----------------------------------------------------------------------
+      # Cela permet de télécharger le rapport depuis l'onglet Actions de GitHub
+      #
+      # - name: Upload coverage report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-report
+      #     path: coverage.xml
