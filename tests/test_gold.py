@@ -4,7 +4,6 @@ from unittest.mock import patch, MagicMock
 
 from src.gold import create_customer_ltv, create_product_performance, create_daily_revenue, create_gold_layer
 
-#test la execution et production du df 
 class TestGold_create_customer_ltv:
     @patch("src.gold._create_gold_table")
     @patch("src.gold.pd.read_sql")
