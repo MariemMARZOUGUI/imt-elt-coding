@@ -44,6 +44,7 @@ from src.transform import (
     transform_products,
     transform_users,
     transform_orders,
+    transform_order_line_items
 )
 
 
@@ -166,6 +167,24 @@ class TestTransformOrders:
         assert result["coupon_code"].notna().all()
         assert (result["coupon_code"] == "").any()  
 
+class TestTransformLineOrders:
+    """Tests for transform_order_line_items()."""
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze")
+    def test_removes_invalid_prices(self, mock_read, mock_load, sample_order_line_items):
+        mock_read.return_value = sample_order_line_items
+        result = transform_order_line_items()
+        assert result["unit_price_usd"].min() > 0
+        assert result["line_total_usd"].min() > 0
+
+    @patch("src.transform._load_to_silver")
+    @patch("src.transform._read_bronze")
+    def test_removes_internal_columns(self, mock_read, mock_load, sample_order_line_items):
+        result = _drop_internal_columns(sample_order_line_items)
+        internal_cols = [col for col in result.columns if col.startswith("_")]
+        assert len(internal_cols) == 0
+    
 
 # =============================================================================
 # TODO (Step 3.3): Complete the error handling tests below
@@ -206,3 +225,5 @@ class TestTransformErrorHandling:
         #pass
         with pytest.raises(Exception, match="DB connection failed"):
             transform_orders()
+            
+            
