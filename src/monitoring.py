@@ -67,22 +67,21 @@ class PipelineReport:
     def add_step(self, step: StepMetrics):
         """Add a completed step's metrics to the report."""
         # TODO: Append the step to self.steps
-        pass
-
+        self.steps.append(step)
+        
     def to_json(self) -> str:
         """Convert the entire report to a JSON string."""
         # TODO: Use dataclasses.asdict(self) to convert to a dict,
         #       then json.dumps() with indent=2 for pretty printing
         #
-        # Hint:
-        #   return json.dumps(asdict(self), indent=2)
-        pass
+        
+             return json.dumps(asdict(self), indent=2)
+        
 
     def save(self, filepath: str = "pipeline_report.json"):
         """Write the JSON report to a file."""
         # TODO: Call self.to_json() and write the result to filepath
         #
-        # Hint:
-        #   with open(filepath, "w") as f:
-        #       f.write(self.to_json())
-        pass
+          with open(filepath, "w") as f:
+                f.write(self.to_json())
+        
