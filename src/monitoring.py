@@ -75,13 +75,13 @@ class PipelineReport:
         #       then json.dumps() with indent=2 for pretty printing
         #
         
-             return json.dumps(asdict(self), indent=2)
+        return json.dumps(asdict(self), indent=2)
         
 
     def save(self, filepath: str = "pipeline_report.json"):
         """Write the JSON report to a file."""
         # TODO: Call self.to_json() and write the result to filepath
         #
-          with open(filepath, "w") as f:
+        with open(filepath, "w") as f:
                 f.write(self.to_json())
         
