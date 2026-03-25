@@ -14,8 +14,8 @@ from sqlalchemy import text
 from src.database import get_engine, BRONZE_SCHEMA
 
 # TODO (TP3): Import your logger and create a module-level logger
-#   1. from src.logger import get_logger
-#   2. logger = get_logger(__name__)
+from src.logger import get_logger
+logger = get_logger(__name__)
 
 S3_BUCKET = os.getenv("S3_BUCKET_NAME", "kickz-empire-data")
 S3_PREFIX = os.getenv("S3_PREFIX", "raw")
@@ -95,8 +95,8 @@ def _load_to_bronze(df: pd.DataFrame, table_name: str, if_exists: str = "replace
         if_exists=if_exists,
         index=False,
     )
-    # TODO (TP3): Replace with logger.info(...)
-    print(f"    ✅ {BRONZE_SCHEMA}.{table_name} — {len(df)} rows loaded")
+    logger.info("Table loaded",extra={"schema": BRONZE_SCHEMA,"table": table_name,"rows": len(df),"status": "success"}
+)
 
 
 # ---------------------------------------------------------------------------
@@ -104,38 +104,53 @@ def _load_to_bronze(df: pd.DataFrame, table_name: str, if_exists: str = "replace
 # ---------------------------------------------------------------------------
 def extract_products() -> pd.DataFrame:
     """Extract the product catalog from S3 → bronze.products."""
-    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
-    df = _read_csv_from_s3(f"{S3_PREFIX}/catalog/products.csv")
-    print(f"  📦 Products: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "products")
-    return df
+    try:
+        df = _read_csv_from_s3(f"{S3_PREFIX}/catalog/products.csv")
+        logger.info(f"  📦 Products: {len(df)} rows, {len(df.columns)} columns")
+        _load_to_bronze(df, "products")
+        return df
+    except Exception:
+        logger.error("Failed to extract products data", exc_info=True)
+        raise 
+    
 
 
 def extract_users() -> pd.DataFrame:
     """Extract users from S3 → bronze.users."""
-    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
-    df = _read_csv_from_s3(f"{S3_PREFIX}/users/users.csv")
-    print(f"  👤 Users: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "users")
-    return df
+    try:
+        df = _read_csv_from_s3(f"{S3_PREFIX}/users/users.csv")
+        logger.info(f"  👤 Users: {len(df)} rows, {len(df.columns)} columns")
+
+        _load_to_bronze(df, "users")
+        return df
+
+    except Exception:
+        logger.error("Failed to extract users data", exc_info=True)
+        raise
 
 
 def extract_orders() -> pd.DataFrame:
     """Extract orders from S3 → bronze.orders."""
-    # TODO (TP3): Replace print with logger.info, add try/except + logger.error + raise
-    df = _read_csv_from_s3(f"{S3_PREFIX}/orders/orders.csv")
-    print(f"  🛍️ Orders: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "orders")
-    return df
+    try:
+        df = _read_csv_from_s3(f"{S3_PREFIX}/orders/orders.csv")
+        logger.info(f"  🛍️ Orders: {len(df)} rows, {len(df.columns)} columns")
+        _load_to_bronze(df, "orders")
+        return df
+    except Exception:
+        logger.error("Failed to extract orders data", exc_info=True)
+        raise
 
 
 def extract_order_line_items() -> pd.DataFrame:
     """Extract order line items from S3 → bronze.order_line_items."""
-    # TODO: Same pattern as extract_products()
-    df = _read_csv_from_s3(f"{S3_PREFIX}/order_line_items/order_line_items.csv")
-    print(f"  📋 Line items: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "order_line_items")
-    return df
+    try:
+        df = _read_csv_from_s3(f"{S3_PREFIX}/order_line_items/order_line_items.csv")
+        logger.info(f"  📋 Line items: {len(df)} rows, {len(df.columns)} columns")
+        _load_to_bronze(df, "order_line_items")
+        return df
+    except Exception:
+        logger.error("Failed to extract order line items data", exc_info=True)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -143,11 +158,14 @@ def extract_order_line_items() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 def extract_reviews() -> pd.DataFrame:
     """Extract customer reviews from S3 → bronze.reviews."""
-    # TODO: Same pattern, but use _read_jsonl_from_s3() instead of _read_csv_from_s3()
-    df = _read_jsonl_from_s3(f"{S3_PREFIX}/reviews/reviews.jsonl")
-    print(f"  ⭐ Reviews: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "reviews")
-    return df
+    try:
+        df = _read_jsonl_from_s3(f"{S3_PREFIX}/reviews/reviews.jsonl")
+        logger.info(f"  ⭐ Reviews: {len(df)} rows, {len(df.columns)} columns")
+        _load_to_bronze(df, "reviews")
+        return df
+    except Exception:
+        logger.error("Failed to extract reviews data", exc_info=True)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -157,10 +175,14 @@ def extract_clickstream() -> pd.DataFrame:
     """Extract clickstream events from S3 → bronze.clickstream."""
     # TODO: Same pattern, but use _read_partitioned_parquet_from_s3()
     # Note: pass a prefix (folder path), not a file key
-    df = _read_partitioned_parquet_from_s3(f"{S3_PREFIX}/clickstream/")
-    print(f"  🖱️ Clickstream: {len(df)} rows, {len(df.columns)} columns")
-    _load_to_bronze(df, "clickstream")
-    return df
+    try:
+        df = _read_partitioned_parquet_from_s3(f"{S3_PREFIX}/clickstream/")
+        logger.info(f"  🖱️ Clickstream: {len(df)} rows, {len(df.columns)} columns")
+        _load_to_bronze(df, "clickstream")
+        return df
+    except Exception:
+        logger.error("Failed to extract clickstream data", exc_info=True)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +196,7 @@ def extract_all() -> dict[str, pd.DataFrame]:
 
     results = {}
 
-    # TODO: Call each extract_*() function and store the result in the dict
+    # Call each extract_*() function and store the result in the dict
     # There are 6 functions to call: 4 CSV + 1 JSONL + 1 Parquet
 
     # CSV datasets

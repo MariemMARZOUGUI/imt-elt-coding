@@ -32,8 +32,19 @@ class JSONFormatter(logging.Formatter):
         # Bonus: if record.exc_info contains an exception, add an "exception" key
         #   if record.exc_info and record.exc_info[0] is not None:
         #       log_entry["exception"] = self.formatException(record.exc_info)
+        log_entry={}
+        log_entry["timestamp"]=datetime.now(timezone.utc).isoformat()
+        log_entry["level"]=record.levelname
+        log_entry["module"]=record.module
+        log_entry["function"] = record.funcName
+        log_entry["message"]=record.getMessage()
 
-        pass  # ← Replace with your implementation
+        if record.exc_info and record.exc_info[0] is not None:
+            log_entry["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(log_entry)
+
+
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -55,5 +66,16 @@ def get_logger(name: str) -> logging.Logger:
     #   5. Add the handler to the logger
     #   6. Set the logger level to logging.DEBUG
     #   7. Return the logger
+    logger=logging.getLogger(name)
 
-    pass  # ← Replace with your implementation
+    if not logger.handlers:
+        handler =logging.StreamHandler()
+        handler.setFormatter(JSONFormatter())
+        logger.addHandler(handler)
+
+    logger.setLevel(logging.DEBUG)
+    
+    return(logger)
+
+
+
